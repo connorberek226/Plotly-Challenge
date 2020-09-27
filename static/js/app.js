@@ -4,14 +4,14 @@ d3.json("data/samples.json").then((data) => {
     console.log(data.samples[0]);
 });
 
-   
+
 
 function buildChart(sample) {
 
     d3.json(`data/samples.json`).then((data) => {
-        
-        console.log(data.samples[sample]);
-        
+
+        console.log(data.samples);
+
         let barChartData = [];
         for (let i = 0; i < data.samples.length; i++) {
             barChartData.push({
@@ -22,32 +22,38 @@ function buildChart(sample) {
             })
         }
         console.log(barChartData);
-        
-        const barChartDataSorted = barChartData.sort((a, b) =>
-            parseInt(b.sample_values) - parseInt(a.sample_values)
+
+
+        let barChartDataSorted = barChartData.sort((a, b) =>
+            parseFloat(b.sample_values) - parseFloat(a.sample_values)
         );
+        console.log(barChartDataSorted[0]["id"]);
+        
+
+        Object.keys(barChartDataSorted).forEach((key) => {
+            
+            if (barChartDataSorted[key]["id"] === sample) {
+                var topIds = barChartDataSorted[key];
+            }
+        })
+
+
         console.log(barChartDataSorted);
 
-        const topIDS = barChartDataSorted.map(d => d.otu_ids).slice(0, 10);
-        const topSampleValues = barChartDataSorted.map(d => d.sample_values).slice(0, 10);
-        const otuLabels = barChartDataSorted.map(d => d.otu_labels).slice(0, 10);
-        // console.log(topIDS);
-        // console.log(topSampleValues);
-        // console.log(otuLabels)
 
-        const barChart = [{
-            x: topSampleValues,
-            y: topIDS,
-            type: "bar",
-            orientation: "h",
-            text: otuLabels
-        }];
+        // const barChart = [{
+        //     x: barChartData,
+        //     y: `OTU ${topIDS}`,
+        //     type: "bar",
+        //     orientation: "h",
+        //     text: otuLabels
+        // }];
 
-        const layout = {
-            title: `Top 10 OTU from sample ${sample}`
-        };
+        // const layout = {
+        //     title: `Top 10 OTU from sample ${sample}`
+        // };
 
-        Plotly.newPlot("bar", barChart, layout);
+        // Plotly.newPlot("bar", barChart, layout);
 
 
 
@@ -102,6 +108,7 @@ function init() {
         // Use the first sample from the list to build the initial plots
         const firstSample = sampleNames.names[0];
         buildChart(firstSample);
+        buildMetaData(firstSample);
 
     });
 }
@@ -110,7 +117,36 @@ function init() {
 function optionChanged(newSample) {
     // Fetch new data each time a new sample is selected
     buildChart(newSample);
-    buildMetadata(newSample);
+    buildMetaData(newSample);
+}
+
+
+function buildMetaData(sample) {
+
+    d3.json("data/samples.json").then((data) => {
+        console.log(data.metadata);
+
+        var metaData = data.metadata;
+        var panelBody = d3.select(".panel-body");
+
+        panelBody.html("")
+
+        for (let i = 0; i < 153; i++) {
+            
+            if (metaData[i]["id"] === sample) {
+                Object.entries(metaData[i]).forEach(([key, val]) => {
+                    var panelLine = panelBody.append("p");
+                    panelLine.text(`${key}: ${val}`);
+                })
+            }
+        }
+        console.log(metaData[0]["id"]);
+
+        
+
+    })
+
+
 }
 
 init();
